@@ -106,7 +106,11 @@ Estructura en `flutter_dashboard/lib`:
    ```bash
    flutter pub get
    ```
-3. Generar JWT firmado con `CUBEJS_API_SECRET`.
+3. Habilitar plataforma web (solo la primera vez si el proyecto fue creado sin `web/`):
+   ```bash
+   flutter create . --platforms=web
+   ```
+4. Generar JWT firmado con `CUBEJS_API_SECRET`.
 
    > Importante: `CUBEJS_API_SECRET` **no** se envía directamente a Flutter.
    > Primero lo usas para firmar un token JWT y ese resultado es el valor de `CUBE_API_TOKEN`.
@@ -122,12 +126,14 @@ Estructura en `flutter_dashboard/lib`:
    npm i jsonwebtoken
    ```
 
-4. Ejecutar app (reemplaza `<JWT_DE_CUBE>` por el token generado en el paso anterior):
+5. Ejecutar app en Chrome (reemplaza `<JWT_DE_CUBE>` por el token generado en el paso anterior):
    ```bash
-   flutter run \
+   flutter run -d chrome \
      --dart-define=CUBE_API_URL=http://localhost:4000/cubejs-api/v1/load \
      --dart-define=CUBE_API_TOKEN=<JWT_DE_CUBE>
    ```
+
+Si te aparece el mensaje _"devices were found, but are not supported by this project"_, significa que faltan los archivos de la plataforma (`web/`, `windows/`, etc.). Ejecuta `flutter create . --platforms=web` dentro de `flutter_dashboard/` y vuelve a correr `flutter run -d chrome`.
 
 ## 7) Requests de ejemplo usados por la app
 
