@@ -39,7 +39,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cube.js Metrics Dashboard'),
+        title: const Text('Cube.js Terminales Dashboard'),
         actions: [
           IconButton(
             onPressed: _controller.load,
@@ -94,7 +94,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Órdenes por día', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Terminales por estado', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 12),
                       SimpleBarChart(points: data.chartPoints),
                     ],
@@ -108,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Reporte por estado', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Top organizaciones por terminales', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 12),
                       ReportTable(rows: data.reportRows),
                     ],
