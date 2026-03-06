@@ -1,0 +1,25 @@
+cubes:
+  - name: Orders
+    sql_table: analytics.orders
+
+    dimensions:
+      - name: id
+        sql: id
+        type: number
+        primary_key: true
+
+      - name: status
+        sql: status
+        type: string
+
+      - name: createdAt
+        sql: created_at
+        type: time
+
+    measures:
+      - name: count
+        type: count
+
+      - name: totalAmount
+        sql: total_amount
+        type: sum
