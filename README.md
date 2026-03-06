@@ -107,7 +107,22 @@ Estructura en `flutter_dashboard/lib`:
    flutter pub get
    ```
 3. Generar JWT firmado con `CUBEJS_API_SECRET`.
-4. Ejecutar app:
+
+   > Importante: `CUBEJS_API_SECRET` **no** se envía directamente a Flutter.
+   > Primero lo usas para firmar un token JWT y ese resultado es el valor de `CUBE_API_TOKEN`.
+
+   Ejemplo rápido con Node.js:
+   ```bash
+   export CUBEJS_API_SECRET='tu-secreto'
+   node -e "const jwt=require('jsonwebtoken'); console.log(jwt.sign({}, process.env.CUBEJS_API_SECRET, {expiresIn: '1h'}));"
+   ```
+
+   Si no tienes `jsonwebtoken` instalado globalmente:
+   ```bash
+   npm i jsonwebtoken
+   ```
+
+4. Ejecutar app (reemplaza `<JWT_DE_CUBE>` por el token generado en el paso anterior):
    ```bash
    flutter run \
      --dart-define=CUBE_API_URL=http://localhost:4000/cubejs-api/v1/load \
