@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  cube:
+    image: cubejs/cube:latest
+    ports:
+      - "4000:4000"
+    environment:
+      CUBEJS_DEV_MODE: "true"
+      CUBEJS_API_SECRET: "dev-secret-cambialo"
+
+      # BigQuery
+      CUBEJS_DB_TYPE: "bigquery"
+      CUBEJS_DB_BQ_PROJECT_ID: "proyecto-ejemplo"
+      CUBEJS_DB_BQ_KEY_FILE: "/cube/conf/keys/bq.json"
+
+      # ✅ Pre-aggregations externas (BigQuery + GCS staging)
+      CUBEJS_PRE_AGGREGATIONS_EXTERNAL: "true"
+      CUBEJS_PRE_AGGREGATIONS_SCHEMA: "cube_preagg"
+      CUBEJS_DB_EXPORT_BUCKET: "agn-cube-preagg-staging"
+
+    volumes:
+      - ./:/cube/conf
