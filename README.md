@@ -54,10 +54,7 @@ Sí, necesitas una estructura base para que Cube.js funcione al levantar el cont
 
 ## 3) Modelo de ejemplo agregado
 
-Se incluyó `model/cubes/orders.yml` con un cube `Orders` que coincide con las queries de Flutter:
-- Measures: `Orders.count`, `Orders.totalAmount`
-- Dimensions: `Orders.status`
-- Time dimension: `Orders.createdAt`
+Se incluyó `model/cubes/orders.yml` con un cube de ejemplo `Orders` (legacy). La app Flutter actual quedó ajustada para consultar `vista_terminales` del modelo JS existente.
 
 También se agregó `model/views/example.view.yml` como vista de reporte base.
 
@@ -110,7 +107,22 @@ Estructura en `flutter_dashboard/lib`:
    flutter pub get
    ```
 3. Generar JWT firmado con `CUBEJS_API_SECRET`.
-4. Ejecutar app:
+
+   > Importante: `CUBEJS_API_SECRET` **no** se envía directamente a Flutter.
+   > Primero lo usas para firmar un token JWT y ese resultado es el valor de `CUBE_API_TOKEN`.
+
+   Ejemplo rápido con Node.js:
+   ```bash
+   export CUBEJS_API_SECRET='tu-secreto'
+   node -e "const jwt=require('jsonwebtoken'); console.log(jwt.sign({}, process.env.CUBEJS_API_SECRET, {expiresIn: '1h'}));"
+   ```
+
+   Si no tienes `jsonwebtoken` instalado globalmente:
+   ```bash
+   npm i jsonwebtoken
+   ```
+
+4. Ejecutar app (reemplaza `<JWT_DE_CUBE>` por el token generado en el paso anterior):
    ```bash
    flutter run \
      --dart-define=CUBE_API_URL=http://localhost:4000/cubejs-api/v1/load \
@@ -123,7 +135,7 @@ Estructura en `flutter_dashboard/lib`:
 ```json
 {
   "query": {
-    "measures": ["Orders.count", "Orders.totalAmount"]
+    "measures": ["vista_terminales.count", "vista_terminales.online", "vista_terminales.offline"]
   }
 }
 ```
@@ -132,16 +144,10 @@ Estructura en `flutter_dashboard/lib`:
 ```json
 {
   "query": {
-    "measures": ["Orders.count"],
-    "timeDimensions": [
-      {
-        "dimension": "Orders.createdAt",
-        "granularity": "day",
-        "dateRange": "last 30 days"
-      }
-    ],
+    "measures": ["vista_terminales.count"],
+    "dimensions": ["vista_terminales.status"],
     "order": {
-      "Orders.createdAt": "asc"
+      "vista_terminales.count": "desc"
     }
   }
 }
@@ -151,10 +157,10 @@ Estructura en `flutter_dashboard/lib`:
 ```json
 {
   "query": {
-    "measures": ["Orders.count", "Orders.totalAmount"],
-    "dimensions": ["Orders.status"],
+    "measures": ["vista_terminales.count"],
+    "dimensions": ["vista_terminales.organization", "vista_terminales.owner", "vista_terminales.status"],
     "order": {
-      "Orders.count": "desc"
+      "vista_terminales.count": "desc"
     },
     "limit": 10
   }
