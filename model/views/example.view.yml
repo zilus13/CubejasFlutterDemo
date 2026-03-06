@@ -1,0 +1,10 @@
+views:
+  - name: OrdersReport
+    description: Vista base para reportes de órdenes
+    cubes:
+      - join_path: Orders
+        includes:
+          - status
+          - createdAt
+          - count
+          - totalAmount

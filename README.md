@@ -3,32 +3,46 @@
 Este repositorio contiene:
 - `docker-compose.yml` para levantar Cube.js.
 - `flutter_dashboard/` con una app Flutter para consumir métricas/reportes desde Cube.js.
+- Estructura mínima de configuración Cube.js (`keys/`, `model/cubes`, `model/views`).
 
-## 1) Inspección del repositorio y hallazgos Cube.js
+## 1) Estructura mínima requerida para Cube.js
 
-Archivo detectado:
-- `docker-compose.yml`
+Sí, necesitas una estructura base para que Cube.js funcione al levantar el contenedor con este repo montado en `/cube/conf`.
+
+```
+.
+├── docker-compose.yml
+├── keys/
+│   ├── bq.json              # credencial real (local, no versionar)
+│   ├── bq.json.example
+│   └── README.md
+├── model/
+│   ├── cubes/
+│   │   └── orders.yml
+│   └── views/
+│       └── example.view.yml
+└── flutter_dashboard/
+```
+
+### Qué es obligatorio
+- `keys/bq.json` (porque `CUBEJS_DB_BQ_KEY_FILE` apunta a `/cube/conf/keys/bq.json`).
+- Al menos un modelo de Cube (`model/cubes/*.yml`) para exponer measures/dimensions.
+
+### Qué no siempre debes crear manualmente
+- Carpetas de cache/runtime como `.cubestore`, `cube_tmp`, etc. pueden crearse en ejecución.
+
+## 2) Hallazgos de `docker-compose.yml`
 
 ### Host y puerto de Cube.js
 - Host local: `localhost`
 - Puerto: `4000`
-- Endpoint base API load: `http://localhost:4000/cubejs-api/v1/load`
+- Endpoint API load: `http://localhost:4000/cubejs-api/v1/load`
 
 ### Esquema de autenticación
-- Se define `CUBEJS_API_SECRET` (`dev-secret-cambialo`) en `docker-compose.yml`.
-- Para consumir el API de Cube.js, la app Flutter espera un JWT en `Authorization` usando `--dart-define=CUBE_API_TOKEN=...`.
+- Cube usa `CUBEJS_API_SECRET`.
+- El cliente Flutter envía JWT en header `Authorization` vía `--dart-define=CUBE_API_TOKEN=...`.
 
-> Nota: Cube.js valida JWT firmado con el secreto configurado en `CUBEJS_API_SECRET`.
-
-### Cubes/measures/dimensions/queries disponibles
-- En este repo no hay esquema (`schema/*.js`) ni modelos de Cube.js versionados.
-- Por eso la app usa queries de ejemplo válidas para un cube típico `Orders`:
-  - Measures: `Orders.count`, `Orders.totalAmount`
-  - Dimensions: `Orders.status`
-  - Time dimension: `Orders.createdAt` (granularity `day`)
-
-### Variables de entorno reutilizables
-Desde `docker-compose.yml`:
+### Variables reutilizables
 - `CUBEJS_DEV_MODE`
 - `CUBEJS_API_SECRET`
 - `CUBEJS_DB_TYPE`
@@ -38,7 +52,16 @@ Desde `docker-compose.yml`:
 - `CUBEJS_PRE_AGGREGATIONS_SCHEMA`
 - `CUBEJS_DB_EXPORT_BUCKET`
 
-## 2) Arquitectura Flutter aplicada
+## 3) Modelo de ejemplo agregado
+
+Se incluyó `model/cubes/orders.yml` con un cube `Orders` que coincide con las queries de Flutter:
+- Measures: `Orders.count`, `Orders.totalAmount`
+- Dimensions: `Orders.status`
+- Time dimension: `Orders.createdAt`
+
+También se agregó `model/views/example.view.yml` como vista de reporte base.
+
+## 4) Arquitectura Flutter aplicada
 
 Estructura en `flutter_dashboard/lib`:
 - `core/`
@@ -52,21 +75,29 @@ Estructura en `flutter_dashboard/lib`:
   - `application/dashboard_controller.dart`: estado (loading/error/data).
   - `presentation/`: pantalla + widgets (KPIs, gráfico de barras, tabla de reporte).
 
-## 3) Pasos para ejecutar Cube.js (Docker Compose)
+## 5) Pasos exactos para ejecutar Cube.js
 
-1. Desde la raíz del repo:
+1. Prepara credenciales BigQuery:
+   ```bash
+   cp keys/bq.json.example keys/bq.json
+   # luego reemplaza con tus credenciales reales
+   ```
+2. (Opcional) define variables de entorno:
+   ```bash
+   export CUBEJS_API_SECRET='tu-secreto'
+   export CUBEJS_DB_BQ_PROJECT_ID='tu-proyecto'
+   export CUBEJS_DB_EXPORT_BUCKET='tu-bucket-staging'
+   ```
+3. Levanta Cube:
    ```bash
    docker compose up -d
    ```
-2. Verifica logs:
+4. Revisa logs:
    ```bash
    docker compose logs -f cube
    ```
-3. Endpoint esperado:
-   - `http://localhost:4000`
-   - API load: `http://localhost:4000/cubejs-api/v1/load`
 
-## 4) Pasos para correr la app Flutter
+## 6) Pasos exactos para correr Flutter
 
 > Requiere Flutter SDK instalado localmente.
 
@@ -78,7 +109,7 @@ Estructura en `flutter_dashboard/lib`:
    ```bash
    flutter pub get
    ```
-3. Generar JWT válido firmado con `CUBEJS_API_SECRET`.
+3. Generar JWT firmado con `CUBEJS_API_SECRET`.
 4. Ejecutar app:
    ```bash
    flutter run \
@@ -86,7 +117,7 @@ Estructura en `flutter_dashboard/lib`:
      --dart-define=CUBE_API_TOKEN=<JWT_DE_CUBE>
    ```
 
-## 5) Requests de ejemplo usados por la app
+## 7) Requests de ejemplo usados por la app
 
 ### KPIs
 ```json
@@ -130,8 +161,8 @@ Estructura en `flutter_dashboard/lib`:
 }
 ```
 
-## 6) Supuestos técnicos
+## 8) Supuestos técnicos
 
-- Se asume que existe (o se creará) un cube `Orders` en la instancia de Cube.js.
-- No se hardcodean credenciales dentro del código Flutter.
-- El token JWT se inyecta por variables de entorno (`dart-define`).
+- La tabla BigQuery esperada del ejemplo es `analytics.orders`.
+- Debes ajustar `sql_table` y campos en `model/cubes/orders.yml` según tu dataset real.
+- No se hardcodean credenciales en Flutter; se inyectan por `dart-define`.
